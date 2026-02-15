@@ -5,29 +5,36 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from PIL import Image
 import os
+import requests
 
-
-model_path = os.path.join(os.getcwd(), "models/model.h5")
-
-# ----------------------------------
-# PAGE CONFIG
-# ----------------------------------
-st.set_page_config(page_title="ML App", layout="centered")
+st.set_page_config(page_title="Traffic E-Challan Detection")
 
 st.title("🚦 Indian Traffic E-Challan Detection")
 
-# ----------------------------------
-# SAFE MODEL LOADING
-# ----------------------------------
+MODEL_PATH = "model.h5"
+
+# 🔥 PUT YOUR MODEL DIRECT DOWNLOAD LINK HERE
+MODEL_URL = "https://your-direct-download-link/model.h5"
+
+
 @st.cache_resource
 def load_trained_model():
-    model_path = os.path.join(os.getcwd(), "model.h5")
 
-    if not os.path.exists(model_path):
-        st.error("❌ model.h5 file not found in repository.")
-        st.stop()
+    # If model not present → download it
+    if not os.path.exists(MODEL_PATH):
+        st.warning("Downloading model... Please wait ⏳")
 
-    return load_model(model_path)
+        try:
+            response = requests.get(MODEL_URL)
+            with open(MODEL_PATH, "wb") as f:
+                f.write(response.content)
+            st.success("Model downloaded successfully ✅")
+        except:
+            st.error("❌ Failed to download model. Check your URL.")
+            st.stop()
+
+    return load_model(MODEL_PATH)
+
 
 model = load_trained_model()
 
@@ -36,7 +43,7 @@ model = load_trained_model()
 # ----------------------------------
 uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
 
-class_names = ["Helmet", "No Helmet"]  # change according to your model
+class_names = ["Helmet", "No Helmet"]
 IMG_SIZE = 224
 
 if uploaded_file is not None:
@@ -51,6 +58,10 @@ if uploaded_file is not None:
     prediction = model.predict(img_array)[0]
     predicted_class = class_names[np.argmax(prediction)]
     confidence = np.max(prediction) * 100
+
+    st.success(f"Prediction: {predicted_class}")
+    st.info(f"Confidence: {confidence:.2f}%")
+
 
     st.success(f"Prediction: {predicted_class}")
     st.info(f"Confidence: {confidence:.2f}%")
