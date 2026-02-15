@@ -34,6 +34,9 @@ def load_trained_model():
     return load_model(model_path)
 
 model = load_trained_model()
+model.save("model.h5")
+print("Model saved successfully!")
+
 
 # ----------------------------------
 # IMAGE UPLOAD
