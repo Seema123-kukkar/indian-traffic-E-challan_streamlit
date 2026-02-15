@@ -1,8 +1,8 @@
 streamlit
-tensorflow
 numpy
-pillow
 pandas
+pillow
 matplotlib
+
 
 
