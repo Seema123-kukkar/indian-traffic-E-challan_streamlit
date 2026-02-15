@@ -3,6 +3,9 @@ numpy
 pandas
 pillow
 matplotlib
+plotly
+scikit-learn
+
 
 
 
