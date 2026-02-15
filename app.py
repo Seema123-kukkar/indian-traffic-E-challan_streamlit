@@ -1,42 +1,21 @@
 import streamlit as st
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
-from PIL import Image
-import os
 import pandas as pd
+from PIL import Image
 import matplotlib.pyplot as plt
+import random
 
 # ----------------------------------
 # PAGE CONFIG
 # ----------------------------------
 st.set_page_config(
-    page_title="Indian Traffic E-Challan Detection",
+    page_title="Indian Traffic E-Challan Detection (Demo)",
     page_icon="🚦",
     layout="centered"
 )
 
-st.title("🚦 Indian Traffic E-Challan Detection System")
-st.write("Upload an image to detect Helmet / No Helmet")
-
-# ----------------------------------
-# MODEL LOADING (SAFE)
-# ----------------------------------
-@st.cache_resource
-def load_trained_model():
-    model_path = "model.h5"
-
-    if not os.path.exists(model_path):
-        st.error("❌ model.h5 not found. Please upload it to the repository.")
-        st.stop()
-
-    return load_model(model_path)
-
-model = load_trained_model()
-model.save("model.h5")
-print("Model saved successfully!")
-
+st.title("🚦 Indian Traffic E-Challan Detection System (Demo Version)")
+st.write("Upload an image to simulate Helmet / No Helmet detection")
 
 # ----------------------------------
 # IMAGE UPLOAD
@@ -44,22 +23,22 @@ print("Model saved successfully!")
 uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
 
 class_names = ["Helmet", "No Helmet"]
-IMG_SIZE = 224
 
 if uploaded_file is not None:
 
     img = Image.open(uploaded_file)
     st.image(img, caption="Uploaded Image", use_column_width=True)
 
-    # Preprocess
-    img = img.resize((IMG_SIZE, IMG_SIZE))
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0) / 255.0
+    # ----------------------------------
+    # DEMO PREDICTION (Random Simulation)
+    # ----------------------------------
+    helmet_prob = random.uniform(0.3, 0.9)
+    no_helmet_prob = 1 - helmet_prob
 
-    # Prediction
-    prediction = model.predict(img_array)[0]
+    prediction = [helmet_prob, no_helmet_prob]
+
     predicted_class = class_names[np.argmax(prediction)]
-    confidence = np.max(prediction) * 100
+    confidence = max(prediction) * 100
 
     st.success(f"Prediction: {predicted_class}")
     st.info(f"Confidence: {confidence:.2f}%")
@@ -83,6 +62,10 @@ if uploaded_file is not None:
     ax.axis("equal")
     st.pyplot(fig)
 
+    # Line Chart
+    st.subheader("📈 Probability Trend")
+    st.line_chart(prob_df.set_index("Class"))
+
     # Download Report
     csv = prob_df.to_csv(index=False).encode("utf-8")
     st.download_button(
@@ -91,3 +74,6 @@ if uploaded_file is not None:
         file_name="prediction_report.csv",
         mime="text/csv"
     )
+
+st.markdown("---")
+st.info("⚠ This is a demo version. No real model is being used.")
