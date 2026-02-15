@@ -20,7 +20,7 @@ st.set_page_config(
 # SIDEBAR
 # ----------------------------------
 st.sidebar.title("🚦 Navigation")
-page = st.sidebar.radio("Go to", ["Home", "Prediction", "Analytics"])
+page = st.sidebar.radio("Go to", ["Home","Analytics"])
 
 # ----------------------------------
 # HOME PAGE
