@@ -39,72 +39,7 @@ if page == "Home":
     ✔ Downloadable reports  
     """)
 
-# ----------------------------------
-# PREDICTION PAGE
-# ----------------------------------
-elif page == "Prediction":
 
-    st.title("📸 Upload Image for Detection")
-
-    uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
-
-    class_names = ["Helmet", "No Helmet"]
-
-    if uploaded_file is not None:
-        st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
-
-        # Simulated Prediction
-        helmet_prob = random.uniform(0.3, 0.9)
-        no_helmet_prob = 1 - helmet_prob
-
-        prediction = [helmet_prob, no_helmet_prob]
-
-        predicted_class = class_names[np.argmax(prediction)]
-        confidence = max(prediction) * 100
-
-        col1, col2 = st.columns(2)
-
-        col1.metric("Prediction", predicted_class)
-        col2.metric("Confidence", f"{confidence:.2f}%")
-
-        prob_df = pd.DataFrame({
-            "Class": class_names,
-            "Probability": prediction
-        })
-
-        # ----------------------------------
-        # Bar Chart
-        # ----------------------------------
-        st.subheader("📊 Probability Bar Chart")
-        st.bar_chart(prob_df.set_index("Class"))
-
-        # ----------------------------------
-        # Pie Chart
-        # ----------------------------------
-        st.subheader("🥧 Pie Chart")
-        fig1 = px.pie(prob_df, values="Probability", names="Class")
-        st.plotly_chart(fig1, use_container_width=True)
-
-        # ----------------------------------
-        # Radar Chart
-        # ----------------------------------
-        st.subheader("🕸 Radar Chart")
-        fig2 = go.Figure()
-        fig2.add_trace(go.Scatterpolar(
-            r=prediction,
-            theta=class_names,
-            fill='toself'
-        ))
-        st.plotly_chart(fig2, use_container_width=True)
-
-        # Download Report
-        csv = prob_df.to_csv(index=False).encode("utf-8")
-        st.download_button(
-            label="📥 Download Prediction Report",
-            data=csv,
-            file_name="prediction_report.csv",
-            mime="text/csv"
-        )
 
 # ----------------------------------
 # ANALYTICS PAGE
