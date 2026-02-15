@@ -6,6 +6,9 @@ from tensorflow.keras.preprocessing import image
 from PIL import Image
 import os
 
+
+model_path = os.path.join(os.getcwd(), "models/model.h5")
+
 # ----------------------------------
 # PAGE CONFIG
 # ----------------------------------
