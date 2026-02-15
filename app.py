@@ -1,79 +1,177 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-from PIL import Image
 import matplotlib.pyplot as plt
 import random
+import plotly.express as px
+import plotly.graph_objects as go
+from sklearn.metrics import confusion_matrix
 
 # ----------------------------------
 # PAGE CONFIG
 # ----------------------------------
 st.set_page_config(
-    page_title="Indian Traffic E-Challan Detection (Demo)",
+    page_title="Indian Traffic E-Challan Detection",
     page_icon="🚦",
-    layout="centered"
+    layout="wide"
 )
 
-st.title("🚦 Indian Traffic E-Challan Detection System (Demo Version)")
-st.write("Upload an image to simulate Helmet / No Helmet detection")
+# ----------------------------------
+# SIDEBAR
+# ----------------------------------
+st.sidebar.title("🚦 Navigation")
+page = st.sidebar.radio("Go to", ["Home", "Prediction", "Analytics"])
 
 # ----------------------------------
-# IMAGE UPLOAD
+# HOME PAGE
 # ----------------------------------
-uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
+if page == "Home":
+    st.title("🚦 Indian Traffic E-Challan Detection System")
+    st.markdown("""
+    ### Advanced Demo Version
+    
+    This version simulates Helmet / No Helmet detection
+    without using a real deep learning model.
+    
+    ✔ Multi-page dashboard  
+    ✔ Interactive charts  
+    ✔ Confusion matrix simulation  
+    ✔ Downloadable reports  
+    """)
 
-class_names = ["Helmet", "No Helmet"]
+# ----------------------------------
+# PREDICTION PAGE
+# ----------------------------------
+elif page == "Prediction":
 
-if uploaded_file is not None:
+    st.title("📸 Upload Image for Detection")
 
-    img = Image.open(uploaded_file)
-    st.image(img, caption="Uploaded Image", use_column_width=True)
+    uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
 
-    # ----------------------------------
-    # DEMO PREDICTION (Random Simulation)
-    # ----------------------------------
-    helmet_prob = random.uniform(0.3, 0.9)
-    no_helmet_prob = 1 - helmet_prob
+    class_names = ["Helmet", "No Helmet"]
 
-    prediction = [helmet_prob, no_helmet_prob]
+    if uploaded_file is not None:
+        st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
 
-    predicted_class = class_names[np.argmax(prediction)]
-    confidence = max(prediction) * 100
+        # Simulated Prediction
+        helmet_prob = random.uniform(0.3, 0.9)
+        no_helmet_prob = 1 - helmet_prob
 
-    st.success(f"Prediction: {predicted_class}")
-    st.info(f"Confidence: {confidence:.2f}%")
+        prediction = [helmet_prob, no_helmet_prob]
 
-    # ----------------------------------
-    # Probability DataFrame
-    # ----------------------------------
-    prob_df = pd.DataFrame({
-        "Class": class_names,
-        "Probability": prediction
+        predicted_class = class_names[np.argmax(prediction)]
+        confidence = max(prediction) * 100
+
+        col1, col2 = st.columns(2)
+
+        col1.metric("Prediction", predicted_class)
+        col2.metric("Confidence", f"{confidence:.2f}%")
+
+        prob_df = pd.DataFrame({
+            "Class": class_names,
+            "Probability": prediction
+        })
+
+        # ----------------------------------
+        # Bar Chart
+        # ----------------------------------
+        st.subheader("📊 Probability Bar Chart")
+        st.bar_chart(prob_df.set_index("Class"))
+
+        # ----------------------------------
+        # Pie Chart
+        # ----------------------------------
+        st.subheader("🥧 Pie Chart")
+        fig1 = px.pie(prob_df, values="Probability", names="Class")
+        st.plotly_chart(fig1, use_container_width=True)
+
+        # ----------------------------------
+        # Radar Chart
+        # ----------------------------------
+        st.subheader("🕸 Radar Chart")
+        fig2 = go.Figure()
+        fig2.add_trace(go.Scatterpolar(
+            r=prediction,
+            theta=class_names,
+            fill='toself'
+        ))
+        st.plotly_chart(fig2, use_container_width=True)
+
+        # Download Report
+        csv = prob_df.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            label="📥 Download Prediction Report",
+            data=csv,
+            file_name="prediction_report.csv",
+            mime="text/csv"
+        )
+
+# ----------------------------------
+# ANALYTICS PAGE
+# ----------------------------------
+elif page == "Analytics":
+
+    st.title("📊 Model Analytics Dashboard (Simulated)")
+
+    # Simulated Accuracy & Loss
+    epochs = list(range(1, 11))
+    accuracy = np.linspace(0.6, 0.95, 10)
+    loss = np.linspace(1.2, 0.2, 10)
+
+    df = pd.DataFrame({
+        "Epoch": epochs,
+        "Accuracy": accuracy,
+        "Loss": loss
     })
 
-    # Bar Chart
-    st.subheader("📊 Prediction Probability")
-    st.bar_chart(prob_df.set_index("Class"))
+    # Accuracy Chart
+    st.subheader("📈 Accuracy Over Epochs")
+    st.line_chart(df.set_index("Epoch")["Accuracy"])
 
-    # Pie Chart
-    st.subheader("🥧 Probability Distribution")
+    # Loss Chart
+    st.subheader("📉 Loss Over Epochs")
+    st.line_chart(df.set_index("Epoch")["Loss"])
+
+    # ----------------------------------
+    # Confusion Matrix Simulation
+    # ----------------------------------
+    st.subheader("🔥 Confusion Matrix")
+
+    y_true = np.random.randint(0, 2, 50)
+    y_pred = np.random.randint(0, 2, 50)
+
+    cm = confusion_matrix(y_true, y_pred)
+
     fig, ax = plt.subplots()
-    ax.pie(prediction, labels=class_names, autopct='%1.1f%%')
-    ax.axis("equal")
+    cax = ax.matshow(cm)
+    plt.colorbar(cax)
+
+    ax.set_xticks([0, 1])
+    ax.set_yticks([0, 1])
+    ax.set_xticklabels(["Helmet", "No Helmet"])
+    ax.set_yticklabels(["Helmet", "No Helmet"])
+
+    for (i, j), val in np.ndenumerate(cm):
+        ax.text(j, i, val, ha='center', va='center')
+
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
     st.pyplot(fig)
 
-    # Line Chart
-    st.subheader("📈 Probability Trend")
-    st.line_chart(prob_df.set_index("Class"))
+    # ----------------------------------
+    # Correlation Heatmap
+    # ----------------------------------
+    st.subheader("🌡 Feature Correlation Heatmap")
 
-    # Download Report
-    csv = prob_df.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        label="📥 Download Prediction Report",
-        data=csv,
-        file_name="prediction_report.csv",
-        mime="text/csv"
-    )
+    demo_data = pd.DataFrame(np.random.rand(20, 5),
+                             columns=["Speed", "Signal", "Helmet", "Lane", "Time"])
 
-st.markdown("---")
-st.info("⚠ This is a demo version. No real model is being used.")
+    fig2, ax2 = plt.subplots()
+    cax2 = ax2.matshow(demo_data.corr())
+    plt.colorbar(cax2)
+    ax2.set_xticks(range(len(demo_data.columns)))
+    ax2.set_yticks(range(len(demo_data.columns)))
+    ax2.set_xticklabels(demo_data.columns, rotation=45)
+    ax2.set_yticklabels(demo_data.columns)
+
+    st.pyplot(fig2)
